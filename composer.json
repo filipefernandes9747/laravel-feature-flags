@@ -1,0 +1,36 @@
+{
+  "name": "filipefernandes/feature-flags",
+  "description": "Reusable Laravel feature flag system",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "FilipeFernandes\\FeatureFlags\\": "src/",
+      "FilipeFernandes\\FeatureFlags\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "VendorName\\FeatureFlags\\FeatureFlagsServiceProvider"
+      ]
+    }
+  },
+  "require": {
+    "php": "^8.1",
+    "illuminate/support": "^10.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0",
+    "pestphp/pest": "^2.0",
+    "livewire/livewire": "^3.6",
+    "inertiajs/inertia-laravel": "^2.0"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}
