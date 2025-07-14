@@ -1,5 +1,5 @@
 {
-  "name": "filipefernandes/feature-flags",
+  "name": "filipefernandes/laravel-feature-flags",
   "description": "Reusable Laravel feature flag system",
   "type": "library",
   "license": "MIT",
