@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Feature Flags</title>
     <style>
         * {
@@ -217,14 +218,23 @@
                         <tr>
                             <td><a href="#" class="feature-key">{{ $flag['key'] }}</a>
                             </td>
-                            @foreach ($environments as $environment)
+                            @if (!empty($environments))
+                                @foreach ($environments as $environment)
+                                    <td>
+                                        <div class="toggle {{ isFlagActive($flag, $environment) ? 'active' : '' }}"
+                                            onclick="toggleFeature(this, '{{ $flag['key'] }}', '{{ isFlagActive($flag, $environment) }}', '{{ $environment }}')">
+                                        </div>
+                                    </td>
+                                @endforeach
+                            @else
                                 <td>
-                                    <div class="toggle {{ isFlagActive($flag, $environment) ? 'active' : '' }}"
-                                        onclick="toggleFeature(this, '{{ isFlagActive($flag, $environment) }}', '{{ $environment }}')">
+                                    <div class="toggle {{ isFlagActive($flag) ? 'active' : '' }}"
+                                        onclick="toggleFeature(this, '{{ $flag['key'] }}', '{{ isFlagActive($flag) }}')">
                                     </div>
                                 </td>
-                            @endforeach
-                            <td class="timestamp"></td>
+                            @endif
+                            <td class="timestamp">{{ \Carbon\Carbon::parse($flag['updated_at'])->diffForHumans() }}
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -233,56 +243,84 @@
     </div>
 
     <script>
-        function toggleFeature(element, enabled, environment = null) {
-            //element.classList.toggle('active');
+        function toggleFeature(element, key, enabled, environment = null) {
+            //
             const formData = {
                 ...(environment && {
                     environment: environment
                 }),
                 enabled: !(enabled === '1')
             }
+            const route = '{{ $route }}';
 
-            console.log(formData);
-
-            /*
-            fetch(`/flags/${flagKey}/toggle`, {
+            fetch(`/${route}/${key}/toggle`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
-                    body: JSON.stringify({
-                        environment: environment,
-                        enabled:
-                    }),
+                    body: JSON.stringify(formData),
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Toggle response:', data);
+                    element.classList.toggle('active');
                 })
                 .catch(error => {
                     console.error('Error toggling feature:', error);
-                    // Optionally revert toggle on error:
-                    element.classList.toggle('active');
                 });
-            */
         }
 
         function addFeature() {
             const name = prompt('Enter feature key name:');
-            if (name) {
-                const table = document.getElementById('featuresTable').getElementsByTagName('tbody')[0];
-                const row = table.insertRow();
 
-                row.innerHTML = `
-                    <td><a href="#" class="feature-key">${name}</a></td>
-                    <td><div class="toggle" onclick="toggleFeature(this)"></div></td>
-                    <td><div class="toggle" onclick="toggleFeature(this)"></div></td>
-                    <td><span class="status off">OFF</span></td>
-                    <td></td>
-                    <td class="timestamp">just now</td>
-                `;
+            if (!name) {
+                return;
             }
+
+            const formData = {
+                name: name
+            };
+
+            const route = '{{ $route }}';
+            const environments = @json($environments);
+
+
+            fetch(`/${route}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(formData),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.getElementById('featuresTable').getElementsByTagName('tbody')[0];
+                    const row = table.insertRow();
+                    const environments = @json($environments);
+
+
+                    // Build cells with JavaScript only
+                    let html = `<td><a href="#" class="feature-key">${data.flag.key}</a></td>`;
+
+                    for (const environment of environments) {
+                        const isActive = data.flag.environments.includes(environment);
+                        html += `
+                            <td>
+                                <div class="toggle ${isActive ? 'active' : ''}"
+                                    onclick="toggleFeature(this, '${data.flag.key}', '${isActive}', '${environment}')">
+                                </div>
+                            </td>
+                        `;
+                    }
+
+                    html += `<td class="timestamp">just now</td>`;
+                    row.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error toggling feature:', error);
+                });
+
         }
 
         // Search functionality

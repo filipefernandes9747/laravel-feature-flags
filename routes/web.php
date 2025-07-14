@@ -11,5 +11,6 @@ Route::prefix($routeEndpoint)
     ->name('feature-flags.')
     ->group(function () {
         Route::get('/', [FeatureFlagController::class, 'index'])->name('index');
+        Route::post('/', [FeatureFlagController::class, 'store'])->name('store');
         Route::post('/{flag}/toggle', [FeatureFlagController::class, 'toggle'])->name('toggle');
     });
