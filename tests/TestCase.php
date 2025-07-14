@@ -6,6 +6,8 @@ use Orchestra\Testbench\TestCase as Orchestra;
 use FilipeFernandes\FeatureFlags\FeatureFlagsServiceProvider;
 use FilipeFernandes\FeatureFlags\Tests\Inertia\TestInertiaMiddleware;
 use FilipeFernandes\FeatureFlags\Tests\Livewire\TestComponent;
+use FilipeFernandes\FeatureFlags\Tests\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Inertia\Inertia;
 
 abstract class TestCase extends Orchestra
@@ -38,13 +40,17 @@ abstract class TestCase extends Orchestra
         ]);
 
         $app['router']->aliasMiddleware('inertia', TestInertiaMiddleware::class);
+
+        // Set User model for auth
+        $app['config']->set('auth.providers.users.model', User::class);
     }
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        //$this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
         $this->artisan('migrate')->run();
 
         // Add this to allow Laravel to load the view
@@ -61,5 +67,26 @@ abstract class TestCase extends Orchestra
         $this->app['router']->get('/test-inertia', function () {
             return Inertia::render('TestPage', []);
         });
+
+
+        // Add Laravel helper functions if not present
+        if (!function_exists('config_path')) {
+            function config_path($path = '')
+            {
+                return __DIR__ . '/../vendor/orchestra/testbench-core/laravel/config' . ($path ? '/' . $path : '');
+            }
+        }
+
+        if (!function_exists('database_path')) {
+            function database_path($path = '')
+            {
+                return __DIR__ . '/../vendor/orchestra/testbench-core/laravel/database' . ($path ? '/' . $path : '');
+            }
+        }
+
+
+        Factory::guessFactoryNamesUsing(
+            fn(string $modelName) => 'FilipeFernandes\\FeatureFlags\\Tests\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
+        );
     }
 }

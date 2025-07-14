@@ -44,8 +44,10 @@ Example:
 ```php
 return [
     'flags' => [
-        'new_dashboard' => true,
-        'beta_mode' => fn () => auth()->check() && auth()->user()->is_beta,
+        'new_dashboard' => [
+            'enabled' => true,
+            'closure' => fn () => auth()->check() && auth()->user()->is_beta,
+        ],
     ],
 
     'middleware' => [
@@ -123,62 +125,6 @@ php artisan feature:flags
 php artisan feature:enable new_dashboard
 php artisan feature:disable new_dashboard
 ```
-
----
-
-## 🧪 Testing
-
-- Package includes built-in tests using [Orchestra Testbench](https://github.com/orchestral/testbench)
-- Supports testing Blade, Livewire, Inertia, and middleware integration
-
-Example:
-
-```php
-$this->get('/test-blade')
-     ->assertSee('Feature is enabled');
-```
-
----
-
-## 🧱 Database Table
-
-The published migration creates a `feature_flags` table:
-
-```php
-Schema::create('feature_flags', function (Blueprint $table) {
-    $table->id();
-    $table->string('key')->unique();
-    $table->boolean('enabled')->default(false);
-    $table->timestamps();
-});
-```
-
----
-
-## 📂 Project Structure
-
-```
-src/
-├── FeatureFlagsServiceProvider.php
-├── Facades/FeatureFlags.php
-├── Http/Middleware/FeatureMiddleware.php
-├── Commands/
-├── Directives/
-├── Models/FeatureFlag.php
-├── Support/helpers.php
-tests/
-```
-
----
-
-## 🧩 Frontend Integration (Vue)
-
-Make sure you have:
-
-- Inertia middleware sharing `featureFlags`
-- Your frontend uses `usePage().props.featureFlags` or API-based flags
-
----
 
 ## ✅ Requirements
 

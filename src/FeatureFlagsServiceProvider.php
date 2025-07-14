@@ -2,6 +2,7 @@
 
 namespace FilipeFernandes\FeatureFlags;
 
+use FilipeFernandes\FeatureFlags\Commands\InstallFeatureFlagsCommand;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Blade;
@@ -18,8 +19,11 @@ class FeatureFlagsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        foreach (glob(__DIR__ . '/../routes/*.php') as $routeFile) {
+            $this->loadRoutesFrom($routeFile);
+        }
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'feature-flags');
 
         $this->publishes([
             __DIR__ . '/../config/feature-flags.php' => config_path('feature-flags.php'),
@@ -34,7 +38,10 @@ class FeatureFlagsServiceProvider extends ServiceProvider
 
 
         if ($this->app->runningInConsole()) {
-            $this->commands([SetFlagCommand::class]);
+            $this->commands([
+                SetFlagCommand::class,
+                InstallFeatureFlagsCommand::class,
+            ]);
         }
 
         $this->app['router']->aliasMiddleware('feature', EnsureFeatureEnabled::class);

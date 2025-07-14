@@ -7,12 +7,15 @@
     "psr-4": {
       "FilipeFernandes\\FeatureFlags\\": "src/",
       "FilipeFernandes\\FeatureFlags\\Tests\\": "tests/"
-    }
+    },
+    "exclude-from-classmap": [
+      "tests/"
+    ]
   },
   "extra": {
     "laravel": {
       "providers": [
-        "VendorName\\FeatureFlags\\FeatureFlagsServiceProvider"
+        "FilipeFernandes\\FeatureFlags\\FeatureFlagsServiceProvider"
       ]
     }
   },
