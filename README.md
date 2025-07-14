@@ -19,7 +19,7 @@ A robust, extensible, and testable **feature flag system** for Laravel 10+ with 
 ## 📦 Installation
 
 ```bash
-composer require filipefernandes/feature-flags
+composer require filipefernandes/laravel-feature-flags
 ```
 
 ### 1. Publish config and migration
