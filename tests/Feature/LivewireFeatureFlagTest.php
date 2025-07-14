@@ -1,8 +1,8 @@
 <?php
 
-use Livewire\Livewire;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use FilipeFernandes\FeatureFlags\Tests\Livewire\TestComponent;
+use Livewire\Livewire;
 
 it('renders livewire feature flag', function () {
     FeatureFlag::create(['key' => 'new_dashboard', 'enabled' => true]);

@@ -2,9 +2,9 @@
 
 namespace FilipeFernandes\FeatureFlags;
 
+use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 
 class FeatureFlags
 {
@@ -18,14 +18,16 @@ class FeatureFlags
         if ($dbFlag) {
             // Check environment-specific override first
             if ($dbFlag->environments && isset($dbFlag->environments[$environment])) {
-                if (!$dbFlag->environments[$environment]) {
+                if (! $dbFlag->environments[$environment]) {
                     return false;
                 }
-            } elseif (!$dbFlag->enabled) {
+            } elseif (! $dbFlag->enabled) {
                 return false;
             }
 
-            if ($closure) return (bool) $closure($context);
+            if ($closure) {
+                return (bool) $closure($context);
+            }
 
             $config = config("feature-flags.flags.$key");
             if (is_array($config) && is_callable($config['closure'] ?? null)) {
@@ -40,8 +42,10 @@ class FeatureFlags
 
         if (is_array($config)) {
             if (isset($config['environments'][$environment])) {
-                if (!$config['environments'][$environment]) return false;
-            } elseif (!($config['enabled'] ?? false)) {
+                if (! $config['environments'][$environment]) {
+                    return false;
+                }
+            } elseif (! ($config['enabled'] ?? false)) {
                 return false;
             }
 
@@ -54,7 +58,6 @@ class FeatureFlags
 
         return false;
     }
-
 
     public function all(bool $onlyExposed = false): array
     {

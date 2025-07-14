@@ -5,10 +5,8 @@ namespace FilipeFernandes\FeatureFlags\Actions;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use Illuminate\Support\Str;
 
-
 class CreateFlag
 {
-
     public function handle(array $data): FeatureFlag
     {
         $key = Str::slug($data['name']);
@@ -21,7 +19,7 @@ class CreateFlag
 
         return FeatureFlag::create([
             'key' => $key,
-            'enabled' => !in_array(false, $environments, true),
+            'enabled' => array_unique(array_values($environments)) === [true],
             'environments' => $environments,
             'metadata' => $data['metadata'] ?? [],
         ]);

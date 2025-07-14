@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use FilipeFernandes\FeatureFlags\Http\Controllers\FeatureFlagController;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 $middleware = config('feature-flags.ui.middleware', []);
 $routeEndpoint = config('feature-flags.ui.route_prefix', 'admin/flags');

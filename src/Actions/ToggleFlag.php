@@ -7,8 +7,8 @@ use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 class ToggleFlag
 {
     private FeatureFlag $flag;
-    private array $settings;
 
+    private array $settings;
 
     public function handle(array $data): bool
     {
@@ -33,12 +33,11 @@ class ToggleFlag
         $this->flag = FeatureFlag::firstOrNew(['key' => $this->settings['key']]);
     }
 
-
     private function prefillFlag(): void
     {
         $key = $this->settings['key'];
         $configFlags = config('feature-flags.flags', []);
-        if (!$this->flag->exists && isset($configFlags[$key]['enabled']) && is_array($configFlags[$key]['enabled'])) {
+        if (! $this->flag->exists && isset($configFlags[$key]['enabled']) && is_array($configFlags[$key]['enabled'])) {
             // Replicate environments from config
             $this->flag->environments = $configFlags[$key]['enabled'];
             $this->flag->enabled = collect($this->flag->environments)->contains(true);
@@ -51,13 +50,13 @@ class ToggleFlag
         $enabled = $this->settings['enabled'];
         if ($environment) {
             $environments = $this->flag->environments ?? [];
-            if (!is_array($environments)) {
+            if (! is_array($environments)) {
                 $environments = json_decode($environments, true) ?? [];
             }
 
             $environments[$environment] = $enabled;
             $this->flag->environments = $environments;
-            $this->flag->enabled = !in_array(false, $environments, true);
+            $this->flag->enabled = ! in_array(false, $environments, true);
         } else {
             $this->flag->enabled = (bool) $enabled;
         }

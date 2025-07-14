@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 class FeatureFlag extends Model
 {
     protected $fillable = ['key', 'enabled', 'environments', 'metadata'];
+
     protected $casts = [
         'enabled' => 'boolean',
         'environments' => 'array',
@@ -16,7 +17,7 @@ class FeatureFlag extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn() => Cache::forget('feature_flags_all'));
-        static::deleted(fn() => Cache::forget('feature_flags_all'));
+        static::saved(fn () => Cache::forget('feature_flags_all'));
+        static::deleted(fn () => Cache::forget('feature_flags_all'));
     }
 }

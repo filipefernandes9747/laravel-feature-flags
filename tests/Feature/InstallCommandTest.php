@@ -3,8 +3,6 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 
-use function Pest\Laravel\artisan;
-
 it('runs the install command and publishes config and migrations', function () {
     // Clean up first
     $publishedConfig = config_path('feature-flags.php');
@@ -20,8 +18,7 @@ it('runs the install command and publishes config and migrations', function () {
 
     // Assert migration file is published
     $migrationPublished = collect(File::files($migrationDir))
-        ->contains(fn($file) => str_contains($file->getFilename(), 'create_feature_flags_table'));
-
+        ->contains(fn ($file) => str_contains($file->getFilename(), 'create_feature_flags_table'));
 
     // Assert views directory and some files were created
     expect(File::isDirectory(resource_path('views/vendor/feature-flags')))->toBeTrue();

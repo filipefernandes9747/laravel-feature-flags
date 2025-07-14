@@ -24,7 +24,6 @@ return [
         'route_prefix' => 'admin/flags',
     ],
 
-
     /*
     |--------------------------------------------------------------------------
     | Environments Options
@@ -33,7 +32,7 @@ return [
 
     'environments' => [
         'dev',
-        'prod'
+        'prod',
     ],
 
     /*

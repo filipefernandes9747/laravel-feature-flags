@@ -10,8 +10,7 @@ it('shares feature flags with inertia', function () {
 
     $response = $this->get('/test-inertia')
         ->assertInertia(
-            fn(Assert $page) =>
-            $page->has('featureFlags')
+            fn (Assert $page) => $page->has('featureFlags')
                 ->where('featureFlags.new_dashboard', true)
         );
 });
