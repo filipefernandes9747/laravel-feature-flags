@@ -4,10 +4,10 @@ namespace FilipeFernandes\FeatureFlags;
 
 use FilipeFernandes\FeatureFlags\Commands\InstallFeatureFlagsCommand;
 use Illuminate\Support\ServiceProvider;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Blade;
 use FilipeFernandes\FeatureFlags\Commands\SetFlagCommand;
 use FilipeFernandes\FeatureFlags\Http\Middleware\EnsureFeatureEnabled;
+use Illuminate\Support\Facades\Log;
 
 class FeatureFlagsServiceProvider extends ServiceProvider
 {
@@ -33,8 +33,15 @@ class FeatureFlagsServiceProvider extends ServiceProvider
             __DIR__ . '/../database/migrations/' => database_path('migrations'),
         ], 'feature-flags-migrations');
 
+        $this->publishes([
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/feature-flags'),
+        ], 'feature-flags-views');
+
         Blade::if('feature', fn($key) => app(FeatureFlags::class)->isEnabled($key));
-        Inertia::share('featureFlags', fn() => app(FeatureFlags::class)->all(true));
+
+        if (class_exists(\Inertia\Inertia::class)) {
+            \Inertia\Inertia::share('featureFlags', fn() => app(FeatureFlags::class)->all(true));
+        }
 
 
         if ($this->app->runningInConsole()) {

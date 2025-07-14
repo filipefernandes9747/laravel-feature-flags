@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 
 class InstallFeatureFlagsCommand extends Command
 {
-    protected $signature = 'feature:install {--migrate : Run the database migrations}';
+    protected $signature = 'feature-flag:install {--migrate : Run the database migrations}';
 
     protected $description = 'Install the Feature Flags package (publish config, migrations, etc)';
 
@@ -25,6 +25,12 @@ class InstallFeatureFlagsCommand extends Command
             '--force' => true,
         ]);
         $this->info('✅ Migrations published');
+
+        $this->callSilent('vendor:publish', [
+            '--tag' => 'feature-flags-views',
+            '--force' => true,
+        ]);
+        $this->info('✅ Resources published');
 
         if ($this->option('migrate')) {
             $this->call('migrate');

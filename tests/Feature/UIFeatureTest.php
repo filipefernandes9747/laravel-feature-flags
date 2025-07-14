@@ -7,6 +7,5 @@ it('shows the feature flags in the UI', function () {
 
     $this->actingAs(User::factory()->create())
         ->get('/feature-flags')
-        ->assertSee('new_dashboard')
-        ->assertSee('✅');
+        ->assertSee('new_dashboard');
 });

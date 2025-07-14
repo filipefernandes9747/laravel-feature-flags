@@ -8,16 +8,24 @@ use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 
 class FeatureFlags
 {
-    public function isEnabled(string $key, $context = null, ?\Closure $overrideClosure = null): bool
+    public function isEnabled(string $key, $context = null, ?string $environment = null, ?\Closure $closure = null): bool
     {
         $context ??= Auth::user();
+        $environment ??= app()->environment();
 
         $dbFlag = FeatureFlag::where('key', $key)->first();
 
         if ($dbFlag) {
-            if (!$dbFlag->enabled) return false;
+            // Check environment-specific override first
+            if ($dbFlag->environments && isset($dbFlag->environments[$environment])) {
+                if (!$dbFlag->environments[$environment]) {
+                    return false;
+                }
+            } elseif (!$dbFlag->enabled) {
+                return false;
+            }
 
-            if ($overrideClosure) return (bool) $overrideClosure($context);
+            if ($closure) return (bool) $closure($context);
 
             $config = config("feature-flags.flags.$key");
             if (is_array($config) && is_callable($config['closure'] ?? null)) {
@@ -27,10 +35,15 @@ class FeatureFlags
             return true;
         }
 
+        // Config fallback
         $config = config("feature-flags.flags.$key");
 
         if (is_array($config)) {
-            if (!($config['enabled'] ?? false)) return false;
+            if (isset($config['environments'][$environment])) {
+                if (!$config['environments'][$environment]) return false;
+            } elseif (!($config['enabled'] ?? false)) {
+                return false;
+            }
 
             if (is_callable($config['closure'] ?? null)) {
                 return (bool) $config['closure']($context);

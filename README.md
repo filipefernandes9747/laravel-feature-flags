@@ -6,6 +6,7 @@ A robust, extensible, and testable **feature flag system** for Laravel 10+ with 
 
 - ✅ Configurable flags (in config file or database)
 - ✅ Boolean or closure-based evaluation
+- ✅ Environment-specific overrides
 - ✅ Persisted flags in DB (with optional validation)
 - ✅ Blade directive: `@feature('flag')`
 - ✅ Livewire & Inertia integration
@@ -24,9 +25,7 @@ composer require filipefernandes/feature-flags
 ### 1. Publish config and migration
 
 ```bash
-php artisan vendor:publish --tag=feature-flags-config
-php artisan vendor:publish --tag=feature-flags-migrations
-php artisan migrate
+php artisan feature-flag:install
 ```
 
 ---
@@ -44,15 +43,22 @@ Example:
 ```php
 return [
     'flags' => [
-        'new_dashboard' => [
+        'flag_1' => [
             'enabled' => true,
             'closure' => fn () => auth()->check() && auth()->user()->is_beta,
         ],
+        'flag_2' => [
+            'enabled' => [
+                'dev' => true,
+                'prod' => false
+            ],
+        ],
     ],
 
-    'middleware' => [
-        'web' => ['auth'],
-        'ui_guard' => 'auth',
+    'ui' => [
+        'enabled' => true,
+        'middleware' => [],
+        'route_prefix' => 'admin/flags',
     ],
 ];
 ```

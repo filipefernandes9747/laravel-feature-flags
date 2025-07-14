@@ -26,5 +26,8 @@ it('returns true if DB flag is enabled but closure is false', function () {
     FeatureFlag::create(['key' => 'flag_1.0', 'enabled' => true]);
 
     $flags = new FeatureFlags();
-    expect($flags->isEnabled('flag_1.0', null, fn() => false))->toBeFalse();
+    expect($flags->isEnabled(
+        key: 'flag_1.0',
+        closure: fn() => false
+    ))->toBeFalse();
 });

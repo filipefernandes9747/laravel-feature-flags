@@ -10,6 +10,9 @@
     },
     "exclude-from-classmap": [
       "tests/"
+    ],
+    "files": [
+      "src/helpers.php"
     ]
   },
   "extra": {
@@ -35,5 +38,9 @@
     "allow-plugins": {
       "pestphp/pest-plugin": true
     }
+  },
+  "suggest": {
+    "inertiajs/inertia-laravel": "Required for Inertia support",
+    "livewire/livewire": "Required for Livewire directives"
   }
 }
