@@ -44,5 +44,10 @@
   "suggest": {
     "inertiajs/inertia-laravel": "Required for Inertia support",
     "livewire/livewire": "Required for Livewire directives"
+  },
+  "support": {
+    "source": "https://github.com/filipefernandes9747/laravel-feature-flags",
+    "issues": "https://github.com/filipefernandes9747/laravel-feature-flags/issues",
+    "changelog": "https://github.com/filipefernandes9747/laravel-feature-flags/blob/main/CHANGELOG.md"
   }
 }

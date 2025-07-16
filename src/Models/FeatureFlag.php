@@ -20,4 +20,9 @@ class FeatureFlag extends Model
         static::saved(fn () => Cache::forget('feature_flags_all'));
         static::deleted(fn () => Cache::forget('feature_flags_all'));
     }
+
+    public function histories()
+    {
+        return $this->hasMany(FeatureFlagHistory::class, 'key');
+    }
 }

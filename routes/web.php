@@ -12,4 +12,6 @@ Route::prefix($routeEndpoint)
         Route::get('/', [FeatureFlagController::class, 'index'])->name('index');
         Route::post('/', [FeatureFlagController::class, 'store'])->name('store');
         Route::post('/{flag}/toggle', [FeatureFlagController::class, 'toggle'])->name('toggle');
+
+        Route::get('/history', [FeatureFlagController::class, 'indexHistory'])->name('history');
     });

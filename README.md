@@ -12,6 +12,7 @@ A robust, extensible, and testable **feature flag system** for Laravel 10+ with 
 - ✅ Livewire & Inertia integration
 - ✅ Middleware for routes or groups
 - ✅ Artisan commands to list and manage flags
+- ✅ Ui for managing feature flags and history
 - ✅ Built with testability & reusability in mind
 
 ---
@@ -74,7 +75,79 @@ You can define static booleans or closures. If the flag is enabled in DB and has
 ```php
 use FeatureFlags;
 
-FeatureFlags::isEnabled('new_dashboard');
+// Simple check if a feature flag is enabled for the current user and environment
+if (FeatureFlags::isEnabled('new_dashboard')) {
+    // Show the new dashboard
+}
+```
+
+---
+
+### 🔄 Check if a flag is enabled with a custom context and environment
+
+```php
+$user = User::find(123);
+$environment = 'staging';
+
+if (FeatureFlags::isEnabled('beta_feature', $user, $environment)) {
+    // Enable beta feature for this user in staging environment
+}
+```
+
+---
+
+### ⚙️ Check a flag with a custom callback
+
+```php
+FeatureFlags::isEnabled('complex_feature', null, null, function ($user) {
+    return $user->isAdmin() && $user->created_at->diffInDays(now()) > 30;
+});
+```
+
+---
+
+### 📋 Check multiple flags
+
+```php
+// Check if all flags are enabled
+$allEnabled = FeatureFlags::allAreEnabled(['feature_a', 'feature_b']);
+
+// Check if some flags are enabled
+$someEnabled = FeatureFlags::someAreEnabled(['feature_c', 'feature_d']);
+```
+
+---
+
+### 📋 Get all active (enabled) feature flags
+
+Retrieve an array of all currently enabled feature flags, considering both the database and config settings.
+
+```php
+use FeatureFlags;
+
+// Get all active flags for the current environment (default)
+$activeFlags = FeatureFlags::all();
+
+// Get all active flags for a specific environment (e.g., 'staging', 'production')
+$activeFlagsInStaging = FeatureFlags::all('staging');
+```
+
+---
+
+### ⚙️ Behavior notes
+
+- By default, the method uses the current app environment (`app()->environment()`).
+- If your `feature-flags.environments` config is defined and non-empty, the method respects environment-specific overrides on each flag.
+- If the global environments config is empty or missing, environment checks are ignored, and only the flag’s `enabled` status is used.
+- Flags defined in the database override config flags.
+- The result is cached for the time setting the config file for performance.
+
+---
+
+### 🔄 Clear cache
+
+```php
+FeatureFlags::clearCache();
 ```
 
 ### ✅ Blade directive

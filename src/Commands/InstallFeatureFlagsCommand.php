@@ -27,6 +27,10 @@ class InstallFeatureFlagsCommand extends Command
         $this->info('✅ Migrations published');
 
         $this->callSilent('vendor:publish', [
+            '--tag' => 'feature-flags-public',
+            '--force' => $this->option('force'),
+        ]);
+        $this->callSilent('vendor:publish', [
             '--tag' => 'feature-flags-views',
             '--force' => $this->option('force'),
         ]);

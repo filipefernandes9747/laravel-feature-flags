@@ -5,6 +5,7 @@ namespace FilipeFernandes\FeatureFlags\Http\Controllers;
 use FilipeFernandes\FeatureFlags\Actions\CreateFlag;
 use FilipeFernandes\FeatureFlags\Actions\ToggleFlag;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
+use FilipeFernandes\FeatureFlags\Models\FeatureFlagHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -61,7 +62,7 @@ class FeatureFlagController
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
-            'environment' => ['sometimes', 'string', 'in:'.implode(',', config('feature-flags.environments', []))],
+            'environment' => ['sometimes', 'string', 'in:' . implode(',', config('feature-flags.environments', []))],
             'metadata' => 'nullable|array',
         ]);
 
@@ -88,7 +89,7 @@ class FeatureFlagController
     {
         $validator = Validator::make($request->all(), [
             'enabled' => 'required|boolean',
-            'environment' => ['sometimes', 'string', 'in:'.implode(',', config('feature-flags.environments', []))],
+            'environment' => ['sometimes', 'string', 'in:' . implode(',', config('feature-flags.environments', []))],
             'metadata' => 'nullable|array',
         ]);
 
@@ -104,5 +105,22 @@ class FeatureFlagController
         }
 
         return response()->json(['message' => 'Successfull save feature flag.'], 200);
+    }
+
+    public function indexHistory(Request $request)
+    {
+        $query = FeatureFlagHistory::orderBy('created_at', 'desc');
+    
+        if ($request->has('filter') && $request->filter) {
+            $query->where('key', 'like', '%' . $request->filter . '%')
+                ->orWhere('changed_by', 'like', '%' . $request->filter . '%')
+                ->orWhere('event', 'like', '%' . $request->filter . '%');
+        }
+
+        $histories = $query->paginate(15);
+
+        return view('feature-flags::history', [
+            'histories' => $histories,
+        ]);
     }
 }
