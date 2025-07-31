@@ -1,8 +1,8 @@
 @extends('feature-flags::layouts.app')
 
-@section('title', 'Features - History')
+@section('title', 'Features Flags - History')
 
-@section('description', 'Displays a chronological log of all changes made to feature flags')
+@section('description', 'Displays a chronological log of all changes made to features flags')
 
 
 
@@ -11,6 +11,8 @@
 
 @section('content')
     @include('feature-flags::partials.header')
+    @include('feature-flags::partials.navigation')
+
     <div class="controls">
         <form method="GET" action="{{ route('feature-flags.history') }}">
             <input type="text" name="filter" value="{{ request('filter') }}" placeholder="Filter history..."

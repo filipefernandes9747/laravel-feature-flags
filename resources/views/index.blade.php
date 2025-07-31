@@ -1,8 +1,8 @@
 @extends('feature-flags::layouts.app')
 
-@section('title', 'Features')
+@section('title', 'Features Flags')
 
-@section('description', "Features enable you to change your app's behavior from within the UI.")
+@section('description', "Features flags enable you to change your app's behavior from within the UI.")
 
 
 @push('styles')
@@ -15,6 +15,7 @@
 
 @section('content')
     @include('feature-flags::partials.header')
+    @include('feature-flags::partials.navigation')
     @include('feature-flags::partials.controls', [
         'showAdd' => true,
     ])
