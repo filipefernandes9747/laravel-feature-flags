@@ -7,6 +7,7 @@ $middleware = config('feature-flags.ui.middleware', []);
 $routeEndpoint = config('feature-flags.ui.route_prefix', 'admin/flags');
 
 Route::prefix($routeEndpoint)
+    ->middleware($middleware)
     ->name('feature-flags.')
     ->group(function () {
         Route::get('/', [FeatureFlagController::class, 'index'])->name('index');
