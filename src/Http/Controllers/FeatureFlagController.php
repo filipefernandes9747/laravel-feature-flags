@@ -62,7 +62,7 @@ class FeatureFlagController
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
-            'environment' => ['sometimes', 'string', 'in:' . implode(',', config('feature-flags.environments', []))],
+            'environment' => ['sometimes', 'string', 'in:'.implode(',', config('feature-flags.environments', []))],
             'metadata' => 'nullable|array',
         ]);
 
@@ -89,7 +89,7 @@ class FeatureFlagController
     {
         $validator = Validator::make($request->all(), [
             'enabled' => 'required|boolean',
-            'environment' => ['sometimes', 'string', 'in:' . implode(',', config('feature-flags.environments', []))],
+            'environment' => ['sometimes', 'string', 'in:'.implode(',', config('feature-flags.environments', []))],
             'metadata' => 'nullable|array',
         ]);
 
@@ -110,11 +110,11 @@ class FeatureFlagController
     public function indexHistory(Request $request)
     {
         $query = FeatureFlagHistory::orderBy('created_at', 'desc');
-    
+
         if ($request->has('filter') && $request->filter) {
-            $query->where('key', 'like', '%' . $request->filter . '%')
-                ->orWhere('changed_by', 'like', '%' . $request->filter . '%')
-                ->orWhere('event', 'like', '%' . $request->filter . '%');
+            $query->where('key', 'like', '%'.$request->filter.'%')
+                ->orWhere('changed_by', 'like', '%'.$request->filter.'%')
+                ->orWhere('event', 'like', '%'.$request->filter.'%');
         }
 
         $histories = $query->paginate(15);

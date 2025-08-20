@@ -155,3 +155,32 @@ it('returns false if flag is disabled for environment', function () {
     expect($flags->isEnabled('env_flag', null, 'testing'))->toBeFalse();
     expect($flags->isEnabled('env_flag', null, 'production'))->toBeTrue();
 });
+
+it('return true feature flag on config with closure with enviroment', function () {
+    Config::set('feature-flags.cache.enabled', false);
+    Config::set('feature-flags.flags', [
+        'flag_test_closure_true' => [
+            'enabled' => true,
+            'environments' => [
+                'testing' => function ($context) {
+                    return true;
+                },
+            ],
+        ],
+        'flag_test_closure_false' => [
+            'enabled' => true,
+            'environments' => [
+                'testing' => function ($context) {
+                    return false;
+                },
+            ],
+        ],
+    ]);
+
+    $flags = new FeatureFlags;
+    $result = $flags->all();
+
+    expect($result)->toHaveKey('flag_test_closure_true')
+        ->and($result['flag_test_closure_true'])->toBeTrue()
+        ->and($result)->not->toHaveKey('flag_test_closure_false');
+});

@@ -5,6 +5,7 @@ namespace FilipeFernandes\FeatureFlags\Commands;
 use Carbon\Carbon;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 class PurgeCommand extends Command
 {
@@ -61,6 +62,7 @@ class PurgeCommand extends Command
         } else {
             $deletedCount = $flags->count();
             FeatureFlag::whereIn('id', $flags->pluck('id'))->delete();
+            Cache::tags('feature_flags')->flush();
             $this->info("Deleted {$deletedCount} feature flag(s).");
         }
 
