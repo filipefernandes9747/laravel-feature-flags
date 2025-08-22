@@ -54,6 +54,12 @@ return [
                 'prod' => false
             ],
         ],
+        'flag_3' => [
+            'enabled' => [
+                'dev' => fn () => auth()->check() && auth()->user()->is_beta,
+                'prod' => true
+            ],
+        ],
     ],
 
     'ui' => [
