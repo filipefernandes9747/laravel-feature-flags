@@ -18,6 +18,7 @@ body {
 }
 
 .header {
+  position: relative;
   background: white;
   border-radius: 8px;
   padding: 20px;
@@ -32,6 +33,10 @@ body {
 
 .header p {
   color: #666;
+}
+
+.capitalize {
+  text-transform: capitalize;
 }
 
 .controls {
@@ -227,6 +232,278 @@ nav ul li a.active {
   background-color: #5f52ff;
   color: #ffffff;
 }
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.conditionals-btn {
+  background-color: #007aff;
+  color: white;
+}
+
+.conditionals-btn:hover {
+  background-color: #0051d0;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.delete-btn {
+  background-color: #ff3b30;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #d70015;
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+}
+
+.more-btn {
+  background-color: #f2f2f7;
+  color: #1d1d1f;
+  border: 1px solid #e5e5e7;
+}
+
+.more-btn:hover {
+  background-color: #e5e5e7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.flag-key {
+  background: #f8f9fa;
+  color: #6366f1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  display: inline-block;
+}
+
+.main-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.rules-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.rules-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.rules-header h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.rules-header p {
+  color: #666;
+  font-size: 14px;
+}
+
+.condition-block {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  position: relative;
+}
+
+.condition-block:last-child {
+  border-bottom: none;
+}
+
+.condition-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.condition-label {
+  background: #6366f1;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  min-width: 60px;
+  text-align: center;
+}
+
+.condition-label.then {
+  background: #10b981;
+}
+
+.condition-label.otherwise {
+  background: #6b7280;
+}
+
+.condition-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.condition-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.form-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.percentage-input {
+  width: 80px;
+  text-align: center;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-btn:hover {
+  background: #dc2626;
+}
+
+.add-condition-btn {
+  background: none;
+  border: 2px dashed #ddd;
+  padding: 15px;
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin: 20px;
+  width: calc(100% - 40px);
+}
+
+.add-condition-btn:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #f8faff;
+}
+
+.logical-operator {
+  text-align: center;
+  padding: 10px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #f9fafb;
+}
+
+.environment-tabs {
+  background: white;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 4px;
+}
+
+.env-tab {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.env-tab.active {
+  background: #6366f1;
+  color: white;
+}
+
+.env-tab:not(.active):hover {
+  background: #f3f4f6;
+}
+
+/* Animations for notifications */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 768px) {
   .controls {
     flex-direction: column;
@@ -236,5 +513,33 @@ nav ul li a.active {
 
   .search-box {
     width: 100%;
+  }
+
+  .condition-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-select,
+  .form-input {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .main-toggle {
+    position: static;
+    margin-top: 15px;
+  }
+
+  .condition-header {
+    flex-wrap: wrap;
+  }
+
+  .environment-tabs {
+    flex-wrap: wrap;
+  }
+
+  .env-tab {
+    min-width: 120px;
   }
 }

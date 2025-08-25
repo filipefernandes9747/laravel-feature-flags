@@ -6,207 +6,298 @@ use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Collection;
 
 class FeatureFlags
 {
+    private array $configCache = [];
+    private ?Collection $dbFlags = null;
+
     public function isEnabled(string $key, $context = null, ?string $environment = null, ?\Closure $closure = null): bool
     {
         $context ??= Auth::user();
         $environment ??= app()->environment();
+        $definedEnvironments = $this->getDefinedEnvironments();
 
-        // Get global environments config array or empty array if none
-        $definedEnvironments = config('feature-flags.environments', []);
-
-        $dbFlag = FeatureFlag::where('key', $key)->first();
+        // Check database flag first (usually fewer items)
+        $dbFlag = $this->getDbFlag($key);
 
         if ($dbFlag) {
-            // Only check environment overrides if environments are defined globally and flag has env overrides
-            if (! empty($definedEnvironments) && $dbFlag->environments && isset($dbFlag->environments[$environment])) {
-                if (! $dbFlag->environments[$environment]) {
-                    return false;
-                }
-            } elseif (! $dbFlag->enabled) {
-                return false;
-            }
-
-            if ($closure) {
-                return (bool) $closure($context);
-            }
-
-            $config = config("feature-flags.flags.$key");
-            if (is_array($config) && is_callable($config['closure'] ?? null)) {
-                return (bool) $config['closure']($context);
-            }
-
-            return true;
+            return $this->evaluateDbFlag($dbFlag, $environment, $definedEnvironments, $context, $closure, $key);
         }
 
-        // Config fallback
-        $config = config("feature-flags.flags.$key");
-
-        if (is_array($config)) {
-            if (! empty($definedEnvironments) && isset($config['environments'][$environment])) {
-                return match (true) {
-                    // If the env value is a plain boolean, just return it
-                    is_bool($config['environments'][$environment]) => $config['environments'][$environment],
-
-                    // If it's a closure/callable, execute it with $context and cast to bool
-                    is_callable($config['environments'][$environment]) => (bool) $config['environments'][$environment]($context),
-
-                    // Fallback
-                    default => false,
-                };
-            } elseif (! ($config['enabled'] ?? false)) {
-                return false;
-            }
-
-            if (is_callable($config['closure'] ?? null)) {
-                return (bool) $config['closure']($context);
-            }
-
-            return true;
-        }
-
-        return false;
+        // Fallback to config
+        return $this->evaluateConfigFlag($key, $environment, $definedEnvironments, $context);
     }
 
     public function all(?string $environment = null): array
     {
         $environment ??= app()->environment();
-        $definedEnvironments = config('feature-flags.environments', []);
-        $cache = config('feature-flags.cache');
         $user = Auth::user();
         $userKey = $user?->id ?? 'guest';
-        $callback = fn () => $this->getAllActive(
-            $environment,
-            $user,
-            $definedEnvironments
-        );
 
-        return $cache['enabled']
-            ? Cache::tags(['feature_flags', "user:{$userKey}"])
-                ->remember("all_active_{$environment}", $cache['ttl'], $callback)
-            : $callback();
+        $cache = config('feature-flags.cache');
+        if (!$cache['enabled']) {
+            return $this->getAllActiveFlags($environment, $user);
+        }
+
+        return Cache::tags(['feature_flags', "user:{$userKey}"])
+            ->remember(
+                "all_active_{$environment}_user_{$userKey}",
+                $cache['ttl'],
+                fn() => $this->getAllActiveFlags($environment, $user)
+            );
     }
 
-    private function getAllActive(string $environment, ?Authenticatable $user, array $definedEnvironments)
+    public function allAreEnabled(array $keys): bool
     {
-        $configFlags = collect(config('feature-flags.flags'))->mapWithKeys(function ($val, $key) use ($environment, $user, $definedEnvironments) {
-            $enabled = false;
+        if (empty($keys)) {
+            return true;
+        }
 
-            if (is_array($val)) {
-                if (! empty($definedEnvironments)) {
-                    if (isset($val['environments'][$environment])) {
-                        $enabled = match (true) {
-                            // If the env value is a plain boolean, just return it
-                            is_bool($val['environments'][$environment]) => $val['environments'][$environment],
-
-                            // If it's a closure/callable, execute it with $context and cast to bool
-                            is_callable($val['environments'][$environment]) => (bool) $val['environments'][$environment]($user),
-
-                            // Fallback
-                            default => false,
-                        };
-                    } else {
-                        $enabled = (bool) ($val['enabled'] ?? false);
-                    }
-                } else {
-                    // No environments defined globally, ignore env check
-                    $enabled = (bool) ($val['enabled'] ?? false);
-                }
-
-                if ($enabled && is_callable($val['closure'] ?? null)) {
-                    $enabled = (bool) $val['closure']($user);
-                }
-            } elseif (is_callable($val)) {
-                $enabled = (bool) $val($user);
-            } else {
-                $enabled = (bool) $val;
-            }
-
-            return [$key => $enabled];
-        });
-
-        $dbFlags = FeatureFlag::all()->mapWithKeys(function ($flag) use ($environment, $user, $definedEnvironments) {
-            if (! empty($definedEnvironments)) {
-                if ($flag->environments && isset($flag->environments[$environment])) {
-                    if (! $flag->environments[$environment]) {
-                        return [$flag->key => false];
-                    }
-                } elseif (! $flag->enabled) {
-                    return [$flag->key => false];
-                }
-            } else {
-                // No environments defined globally, ignore env check
-                if (! $flag->enabled) {
-                    return [$flag->key => false];
-                }
-            }
-
-            $config = config("feature-flags.flags.{$flag->key}");
-            if (is_array($config) && is_callable($config['closure'] ?? null)) {
-                return [$flag->key => (bool) $config['closure']($user)];
-            }
-
-            return [$flag->key => true];
-        })->toArray();
-
-        $allFlags = array_merge($configFlags->toArray(), $dbFlags);
-
-        return array_filter($allFlags, fn ($enabled) => $enabled === true);
-    }
-
-    public function allAreEnabled(array $keys = []): bool
-    {
         foreach ($keys as $key) {
-            if (! $this->isEnabled($key)) {
+            if (!$this->isEnabled($key)) {
                 return false;
             }
         }
-
         return true;
     }
 
-    public function someAreEnabled(array $keys = []): bool
+    public function someAreEnabled(array $keys): bool
     {
         foreach ($keys as $key) {
             if ($this->isEnabled($key)) {
                 return true;
             }
         }
-
         return false;
     }
 
-    public function inative(string $key, ?string $environment = null): bool
+    public function inactive(string $key, ?string $environment = null): bool
     {
-        return ! $this->isEnabled(key: $key, environment: $environment);
+        return !$this->isEnabled($key, environment: $environment);
     }
 
-    public function allAreInative(array $keys = []): bool
+    public function allAreInactive(array $keys): bool
     {
         foreach ($keys as $key) {
             if ($this->isEnabled($key)) {
                 return false;
             }
         }
-
         return true;
     }
 
-    public function someAreInactive(array $keys = []): bool
+    public function someAreInactive(array $keys): bool
     {
         foreach ($keys as $key) {
-            if (! $this->isEnabled($key)) {
+            if (!$this->isEnabled($key)) {
                 return true;
             }
         }
-
         return false;
+    }
+
+    public function getAllFlags(array $environments): array
+    {
+        $dbFlags = $this->getDbFlags()->keyBy('key');
+
+        // Start with DB flags
+        $flags = $dbFlags->map(fn($flag) => [
+            'key' => $flag->key,
+            'enabled' => !empty($environments) && !empty($flag->environments)
+                ? $flag->environments
+                : $flag->enabled,
+            'updated_at' => $flag->updated_at,
+            'db' => true
+        ]);
+
+        // Add config flags that aren't in DB
+        $configFlags = $this->getConfigFlags();
+        foreach ($configFlags as $key => $configFlag) {
+            if (!$dbFlags->has($key)) {
+                $flags->put($key, [
+                    'key' => $key,
+                    'enabled' => $configFlag['enabled'] ?? false,
+                    'updated_at' => null,
+                    'db' => false
+                ]);
+            }
+        }
+
+        return $flags->values()->toArray();
     }
 
     public function clearCache(): void
     {
-        Cache::forget('feature_flags_all');
+        Cache::tags('feature_flags')->flush();
+        // Also clear internal cache
+        $this->configCache = [];
+        $this->dbFlags = null;
+    }
+
+    // Private helper methods
+
+    private function getDefinedEnvironments(): array
+    {
+        return $this->configCache['environments'] ??= config('feature-flags.environments', []);
+    }
+
+    private function getConfigFlags(): array
+    {
+        return $this->configCache['flags'] ??= config('feature-flags.flags', []);
+    }
+
+    private function getDbFlags(): Collection
+    {
+        return $this->dbFlags ??= FeatureFlag::all();
+    }
+
+    private function getDbFlag(string $key): ?FeatureFlag
+    {
+        return $this->getDbFlags()->firstWhere('key', $key);
+    }
+
+    private function evaluateDbFlag(
+        FeatureFlag $dbFlag,
+        string $environment,
+        array $definedEnvironments,
+        $context,
+        ?\Closure $closure,
+        string $key
+    ): bool {
+        // Check environment overrides
+        if (!empty($definedEnvironments) && $dbFlag->environments && isset($dbFlag->environments[$environment])) {
+            if (!$dbFlag->environments[$environment]) {
+                return false;
+            }
+        } elseif (!$dbFlag->enabled) {
+            return false;
+        }
+
+        // Custom closure takes precedence
+        if ($closure) {
+            return (bool) $closure($context);
+        }
+
+        // Check config closure
+        $config = $this->getConfigFlags()[$key] ?? null;
+        if (is_array($config) && is_callable($config['closure'] ?? null)) {
+            return (bool) $config['closure']($context);
+        }
+
+        return true;
+    }
+
+    private function evaluateConfigFlag(string $key, string $environment, array $definedEnvironments, $context): bool
+    {
+        $config = $this->getConfigFlags()[$key] ?? null;
+
+        if (!is_array($config)) {
+            return false;
+        }
+
+        // Check environment-specific settings
+        if (!empty($definedEnvironments) && isset($config['environments'][$environment])) {
+            $envValue = $config['environments'][$environment];
+
+            return match (true) {
+                is_bool($envValue) => $envValue,
+                is_callable($envValue) => (bool) $envValue($context),
+                default => false,
+            };
+        }
+
+        // Check global enabled flag
+        if (!($config['enabled'] ?? false)) {
+            return false;
+        }
+
+        // Execute closure if present
+        if (is_callable($config['closure'] ?? null)) {
+            return (bool) $config['closure']($context);
+        }
+
+        return true;
+    }
+
+    private function getAllActiveFlags(string $environment, ?Authenticatable $user): array
+    {
+        $definedEnvironments = $this->getDefinedEnvironments();
+
+        // Process config flags
+        $configFlags = collect($this->getConfigFlags())
+            ->mapWithKeys(fn($val, $key) => [
+                $key => $this->evaluateConfigValue($val, $environment, $user, $definedEnvironments)
+            ]);
+
+        // Process DB flags
+        $dbFlags = $this->getDbFlags()
+            ->mapWithKeys(fn($flag) => [
+                $flag->key => $this->evaluateDbFlagForAll($flag, $environment, $user, $definedEnvironments)
+            ]);
+
+        // Merge and filter active flags
+        return array_filter(
+            array_merge($configFlags->toArray(), $dbFlags->toArray()),
+            fn($enabled) => $enabled === true
+        );
+    }
+
+    private function evaluateConfigValue($val, string $environment, ?Authenticatable $user, array $definedEnvironments): bool
+    {
+        if (is_callable($val)) {
+            return (bool) $val($user);
+        }
+
+        if (!is_array($val)) {
+            return (bool) $val;
+        }
+
+        $enabled = false;
+
+        if (!empty($definedEnvironments) && isset($val['environments'][$environment])) {
+            $envValue = $val['environments'][$environment];
+            $enabled = match (true) {
+                is_bool($envValue) => $envValue,
+                is_callable($envValue) => (bool) $envValue($user),
+                default => false,
+            };
+        } else {
+            $enabled = (bool) ($val['enabled'] ?? false);
+        }
+
+        // Apply closure if enabled and closure exists
+        if ($enabled && is_callable($val['closure'] ?? null)) {
+            $enabled = (bool) $val['closure']($user);
+        }
+
+        return $enabled;
+    }
+
+    private function evaluateDbFlagForAll(FeatureFlag $flag, string $environment, ?Authenticatable $user, array $definedEnvironments): bool
+    {
+        // Check environment settings
+        if (!empty($definedEnvironments)) {
+            if ($flag->environments && isset($flag->environments[$environment])) {
+                if (!$flag->environments[$environment]) {
+                    return false;
+                }
+            } elseif (!$flag->enabled) {
+                return false;
+            }
+        } else {
+            if (!$flag->enabled) {
+                return false;
+            }
+        }
+
+        // Check for config closure
+        $config = $this->getConfigFlags()[$flag->key] ?? null;
+        if (is_array($config) && is_callable($config['closure'] ?? null)) {
+            return (bool) $config['closure']($user);
+        }
+
+        return true;
     }
 }

@@ -10,9 +10,18 @@ Route::prefix($routeEndpoint)
     ->middleware($middleware)
     ->name('feature-flags.')
     ->group(function () {
-        Route::get('/', [FeatureFlagController::class, 'index'])->name('index');
-        Route::post('/', [FeatureFlagController::class, 'store'])->name('store');
-        Route::post('/{flag}/toggle', [FeatureFlagController::class, 'toggle'])->name('toggle');
+        Route::get('/history', [FeatureFlagController::class, 'indexHistory'])
+            ->name('history');
+        Route::get('/', [FeatureFlagController::class, 'index'])
+            ->name('index');
+        Route::post('/', [FeatureFlagController::class, 'store'])
+            ->name('store');
 
-        Route::get('/history', [FeatureFlagController::class, 'indexHistory'])->name('history');
+
+        Route::post('/{flag}/toggle', [FeatureFlagController::class, 'toggle'])
+            ->name('toggle');
+        Route::delete('/{flag}', [FeatureFlagController::class, 'delete'])
+            ->name('delete');
+        Route::get('/{flag}/conditionals', [FeatureFlagController::class, 'showConditionals'])
+            ->name('conditionals');
     });

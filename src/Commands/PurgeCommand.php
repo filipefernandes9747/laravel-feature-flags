@@ -3,6 +3,7 @@
 namespace FilipeFernandes\FeatureFlags\Commands;
 
 use Carbon\Carbon;
+use FilipeFernandes\FeatureFlags\FeatureFlags;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -27,6 +28,8 @@ class PurgeCommand extends Command
         $days = $this->option('days');
 
         $query = FeatureFlag::query();
+
+        $service = new FeatureFlags;
 
         if (! empty($key)) {
             $query->whereIn('key', $key);
@@ -53,7 +56,7 @@ class PurgeCommand extends Command
                 $this->info('No flags would be deleted.');
             } else {
                 $this->info('Dry run: the following flags would be deleted:');
-                $this->table(['Key', 'Enabled', 'Updated At'], $flags->map(fn ($f) => [
+                $this->table(['Key', 'Enabled', 'Updated At'], $flags->map(fn($f) => [
                     $f->key,
                     $f->enabled ? 'true' : 'false',
                     $f->updated_at->toDateTimeString(),
@@ -62,7 +65,7 @@ class PurgeCommand extends Command
         } else {
             $deletedCount = $flags->count();
             FeatureFlag::whereIn('id', $flags->pluck('id'))->delete();
-            Cache::tags('feature_flags')->flush();
+            $service->clearCache();
             $this->info("Deleted {$deletedCount} feature flag(s).");
         }
 

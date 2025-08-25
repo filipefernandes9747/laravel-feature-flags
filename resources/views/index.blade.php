@@ -28,13 +28,15 @@
                     @foreach ($environments as $environment)
                         <th>{{ $environment }}</th>
                     @endforeach
+                    <th>Actions</th>
                     <th>Last Updated</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($flags as $flag)
-                    <tr>
-                        <td><a href="#" class="feature-key">{{ $flag['key'] }}</a>
+                    <tr id="flag-{{ $flag['key'] }}">
+                        <td>
+                            <a href="#" class="feature-key">{{ $flag['key'] }}</a>
                         </td>
                         @if (!empty($environments))
                             @foreach ($environments as $environment)
@@ -51,6 +53,23 @@
                                 </div>
                             </td>
                         @endif
+                        <td>
+                            <div class="actions-cell">
+                                @if ($flag['db'])
+                                    <a class="action-btn conditionals-btn"
+                                        href="{{ route('feature-flags.conditionals', $flag['key']) }}">
+                                        ⚙️ Conditionals
+                                    </a>
+                                @else
+                                    <span style="color: #86868b; font-size: 13px;">No conditionals available</span>
+                                @endif
+                                @if ($flag['db'])
+                                    <button class="action-btn delete-btn" onclick="deleteAction('{{ $flag['key'] }}')">
+                                        🗑️ Delete
+                                    </button>
+                                @endif
+                            </div>
+                        </td>
                         <td class="timestamp">{{ \Carbon\Carbon::parse($flag['updated_at'])->diffForHumans() }}
                         </td>
                     </tr>
@@ -156,5 +175,33 @@
                 }
             });
         });
+
+
+        function deleteAction(key) {
+            if (!confirm("Are you sure you want to delete this flag?")) {
+                return;
+            }
+
+            try {
+                const route = '{{ $route }}';
+
+                fetch(`/${route}/${key}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById(`flag-${key}`)?.remove();
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                    });
+            } catch (err) {
+                console.error("Error:", err);
+            }
+        }
     </script>
 @endpush

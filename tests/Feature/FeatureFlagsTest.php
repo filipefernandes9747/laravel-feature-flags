@@ -27,7 +27,7 @@ it('returns true if DB flag is enabled but closure is false', function () {
     $flags = new FeatureFlags;
     expect($flags->isEnabled(
         key: 'flag_1.0',
-        closure: fn () => false
+        closure: fn() => false
     ))->toBeFalse();
 });
 
@@ -45,7 +45,7 @@ it('returns only enabled flags from config and db for current environment by def
     FeatureFlag::create(['key' => 'flag_db_with_env', 'enabled' => true, 'environments' => ['testing' => true, 'production' => false]]);
 
     // Mock environment 'testing'
-    app()->detectEnvironment(fn () => 'testing');
+    app()->detectEnvironment(fn() => 'testing');
 
     $flags = new FeatureFlags;
     $result = $flags->all();
@@ -117,7 +117,7 @@ it('returns true if all given flags are inactive', function () {
     FeatureFlag::create(['key' => 'flag_b', 'enabled' => false]);
 
     $flags = new FeatureFlags;
-    expect($flags->allAreInative(['flag_a', 'flag_b']))->toBeTrue();
+    expect($flags->allAreInactive(['flag_a', 'flag_b']))->toBeTrue();
 });
 
 it('returns false if any flag is enabled', function () {
@@ -125,7 +125,7 @@ it('returns false if any flag is enabled', function () {
     FeatureFlag::create(['key' => 'flag_b', 'enabled' => true]);
 
     $flags = new FeatureFlags;
-    expect($flags->allAreInative(['flag_a', 'flag_b']))->toBeFalse();
+    expect($flags->allAreInactive(['flag_a', 'flag_b']))->toBeFalse();
 });
 
 it('returns true if some flags are inactive', function () {

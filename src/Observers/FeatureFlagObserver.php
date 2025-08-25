@@ -2,28 +2,31 @@
 
 namespace FilipeFernandes\FeatureFlags\Observers;
 
+use FilipeFernandes\FeatureFlags\FeatureFlags;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlagHistory;
 use Illuminate\Support\Facades\Cache;
 
 class FeatureFlagObserver
 {
+    public function __construct(protected FeatureFlags $service) {}
+
     public function created(FeatureFlag $featureFlag)
     {
         $this->logChange($featureFlag, 'created');
-        Cache::tags('feature_flags')->flush();
+        $this->service->clearCache();
     }
 
     public function updated(FeatureFlag $featureFlag)
     {
         $this->logChange($featureFlag, 'updated');
-        Cache::tags('feature_flags')->flush();
+        $this->service->clearCache();
     }
 
     public function deleted(FeatureFlag $featureFlag)
     {
         $this->logChange($featureFlag, 'deleted');
-        Cache::tags('feature_flags')->flush();
+        $this->service->clearCache();
     }
 
     protected function logChange(FeatureFlag $featureFlag, string $event)

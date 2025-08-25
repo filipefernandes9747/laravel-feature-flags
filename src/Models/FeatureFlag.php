@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Cache;
 
 class FeatureFlag extends Model
 {
-    protected $fillable = ['key', 'enabled', 'environments', 'metadata'];
+    protected $table = 'feature_flags';
+
+    protected $fillable = ['key', 'enabled', 'environments', 'metadata', 'description'];
 
     protected $casts = [
         'enabled' => 'boolean',
@@ -15,10 +17,16 @@ class FeatureFlag extends Model
         'metadata' => 'array',
     ];
 
+    // Tell Laravel to use "key" column instead of "id" for route model binding
+    public function getRouteKeyName()
+    {
+        return 'key';
+    }
+
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget('feature_flags_all'));
-        static::deleted(fn () => Cache::forget('feature_flags_all'));
+        static::saved(fn() => Cache::tags('feature_flags')->flush());
+        static::deleted(fn() => Cache::tags('feature_flags')->flush());
     }
 
     public function histories()
