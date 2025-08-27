@@ -2,6 +2,7 @@
 
 namespace FilipeFernandes\FeatureFlags\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -32,5 +33,17 @@ class FeatureFlag extends Model
     public function histories()
     {
         return $this->hasMany(FeatureFlagHistory::class, 'key');
+    }
+
+    /**
+     * Get Conditions
+     *
+     * @return Attribute<array>
+     */
+    protected function conditions(): Attribute
+    {
+        return Attribute::make(get: function () {
+            return $this->metadata['conditions'] ?? [];
+        });
     }
 }

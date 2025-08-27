@@ -2,6 +2,7 @@
 
 namespace FilipeFernandes\FeatureFlags;
 
+use FilipeFernandes\FeatureFlags\Enums\OperationType;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
@@ -180,6 +181,11 @@ class FeatureFlags
             return (bool) $closure($context);
         }
 
+        //check conditions
+        if (!empty($dbFlag->conditions)) {
+            return (bool) $this->evaluateConditions($dbFlag->conditions, $context);
+        }
+
         // Check config closure
         $config = $this->getConfigFlags()[$key] ?? null;
         if (is_array($config) && is_callable($config['closure'] ?? null)) {
@@ -299,5 +305,66 @@ class FeatureFlags
         }
 
         return true;
+    }
+
+    private function evaluateConditions(array $conditions, $context): bool
+    {
+        $andConditions = $conditions['and'] ?? [];
+        $orConditions  = $conditions['or'] ?? [];
+
+        // all "and" conditions must pass
+        foreach ($andConditions as $condition) {
+            if (!$this->evaluateCondition($condition, $context)) {
+                return false;
+            }
+        }
+
+
+        // if no OR, then only AND matters
+        if (empty($orConditions)) {
+            return true;
+        }
+
+        // at least one OR must pass
+        foreach ($orConditions as $condition) {
+            if ($this->evaluateCondition($condition, $context)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function evaluateCondition(array $condition, $context): bool
+    {
+        if ($condition['context'] === 'user' && str_contains(strtolower(class_basename($context)), 'user')) {
+            if ($condition['operation'] !== OperationType::in->name) {
+                $attribute = $context->{$condition['key']} ?? null;
+
+                if ($attribute === null) {
+                    return false;
+                }
+            }
+
+            return match ($condition['operation']) {
+                OperationType::equals->name   => $attribute === $condition['value'],
+                OperationType::contains->name => str_contains((string) $attribute, (string) $condition['value']),
+                OperationType::in->name       => $this->evaluateInCondition($context, (string) $condition['value']),
+                default => false,
+            };
+        }
+
+        return true;
+    }
+
+    private function evaluateInCondition($context, string $option): bool
+    {
+        $options = config('feature-flags.user_list', []);
+
+        if (empty($options) || empty($options[$option])) {
+            return false;
+        }
+
+        return $options[$option]($context);
     }
 }

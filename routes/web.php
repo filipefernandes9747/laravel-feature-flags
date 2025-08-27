@@ -24,4 +24,6 @@ Route::prefix($routeEndpoint)
             ->name('delete');
         Route::get('/{flag}/conditionals', [FeatureFlagController::class, 'showConditionals'])
             ->name('conditionals');
+        Route::post('/{flag}/conditionals', [FeatureFlagController::class, 'storeConditionals'])
+            ->name('conditionals.update');
     });

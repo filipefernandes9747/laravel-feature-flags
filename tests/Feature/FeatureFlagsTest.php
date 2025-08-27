@@ -2,6 +2,7 @@
 
 use FilipeFernandes\FeatureFlags\FeatureFlags;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
+use FilipeFernandes\FeatureFlags\Tests\Models\User;
 use Illuminate\Support\Facades\Config;
 
 it('returns false for unknown flags', function () {
@@ -183,4 +184,83 @@ it('return true feature flag on config with closure with enviroment', function (
     expect($result)->toHaveKey('flag_test_closure_true')
         ->and($result['flag_test_closure_true'])->toBeTrue()
         ->and($result)->not->toHaveKey('flag_test_closure_false');
+});
+
+
+
+it('return true condition contains', function () {
+    $user = User::factory()->create();
+    FeatureFlag::create([
+        'key' => 'conditions',
+        'enabled' => true,
+        'metadata' => [
+            'conditions' => [
+                'and' => [
+                    [
+                        'context' => 'user',
+                        'operation' => 'contains',
+                        'key' => 'email',
+                        'value' => '@',
+                    ],
+                ],
+                'or' => []
+            ],
+        ],
+    ]);
+
+    $flags = new FeatureFlags;
+    expect($flags->isEnabled('conditions', $user))->toBeTrue();
+});
+
+it('return true condition equals', function () {
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+    ]);
+    FeatureFlag::create([
+        'key' => 'conditions',
+        'enabled' => true,
+        'metadata' => [
+            'conditions' => [
+                'and' => [
+                    [
+                        'context' => 'user',
+                        'operation' => 'equals',
+                        'key' => 'email',
+                        'value' => 'test@example.com',
+                    ],
+                ],
+                'or' => []
+            ],
+        ],
+    ]);
+    $flags = new FeatureFlags;
+    expect($flags->isEnabled('conditions', $user))->toBeTrue();
+});
+
+it('return true condition in', function () {
+    $user = User::factory()->create([
+        'email' => 'tester@example.com',
+    ]);
+    FeatureFlag::create([
+        'key' => 'conditions',
+        'enabled' => true,
+        'metadata' => [
+            'conditions' => [
+                'and' => [
+                    [
+                        'context' => 'user',
+                        'operation' => 'in',
+                        'value' => 'beta testers',
+                    ],
+                ],
+                'or' => []
+            ],
+        ],
+    ]);
+    Config::set('feature-flags.user_list', [
+        'beta testers' => fn($user) => in_array($user->email, ['tester@example.com']),
+    ]);
+
+    $flags = new FeatureFlags;
+    expect($flags->isEnabled('conditions', $user))->toBeTrue();
 });

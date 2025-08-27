@@ -5,11 +5,15 @@ namespace FilipeFernandes\FeatureFlags\Http\Controllers;
 use FilipeFernandes\FeatureFlags\Actions\CreateFlag;
 use FilipeFernandes\FeatureFlags\Actions\DeleteFlag;
 use FilipeFernandes\FeatureFlags\Actions\ToggleFlag;
+use FilipeFernandes\FeatureFlags\Actions\UpdateMetaData;
+use FilipeFernandes\FeatureFlags\Enums\ContextType;
+use FilipeFernandes\FeatureFlags\Enums\OperationType;
 use FilipeFernandes\FeatureFlags\FeatureFlags;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlag;
 use FilipeFernandes\FeatureFlags\Models\FeatureFlagHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class FeatureFlagController
 {
@@ -109,13 +113,39 @@ class FeatureFlagController
 
     public function showConditionals(string $flag, Request $request)
     {
-        $environments = config('feature-flags.environments', []);
+        $userOptions = config('feature-flags.user_list', []);
 
         $flag = FeatureFlag::where('key', $flag)->firstOrFail();
+        $routeEndpoint = config('feature-flags.ui.route_prefix', 'admin/flags');
+
 
         return view('feature-flags::conditionals', [
             'flag' => $flag,
-            'environments' => $environments,
+            'userOptions' => array_keys($userOptions),
+            'route' => $routeEndpoint,
         ]);
+    }
+
+    public function storeConditionals(string $flag, Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'conditions' => ['required', 'array'],
+            'conditions.*.context' => ['required', 'string', Rule::in(ContextType::values())],
+            'conditions.*.operation' => ['required', 'string', Rule::in(OperationType::values())],
+            'conditions.*.key' => ['sometimes', 'string'],
+            'conditions.*.value' => ['sometimes', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $data = $validator->validated();
+
+        if (! (new UpdateMetaData)->handle($flag, $data)) {
+            return response()->json(['message' => 'Failed to update feature flag conditionals.'], 500);
+        }
+
+        return response()->json(['message' => 'Successfull update feature flag conditionals'], 200);
     }
 }
