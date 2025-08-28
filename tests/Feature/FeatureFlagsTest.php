@@ -257,7 +257,7 @@ it('return true condition in', function () {
             ],
         ],
     ]);
-    Config::set('feature-flags.user_list', [
+    Config::set('feature-flags.ui.options', [
         'beta testers' => fn($user) => in_array($user->email, ['tester@example.com']),
     ]);
 

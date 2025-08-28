@@ -26,7 +26,7 @@ composer require filipefernandes/laravel-feature-flags
 ### 1. Publish config and migration
 
 ```bash
-php artisan feature-flag:install
+php artisan feature-flag:install {--force: if you want to replace the current files}
 ```
 
 ---
@@ -66,11 +66,16 @@ return [
         'enabled' => true,
         'middleware' => [],
         'route_prefix' => 'admin/flags',
+        'options' => [
+            'beta testers' => fn ($context) => $context->is_beta_testers,
+            'admin' => fn (User $user) => $user->is_admin,
+            ...
+        ]
     ],
 ];
 ```
 
-You can define static booleans or closures. If the flag is enabled in DB and has a closure, it will be resolved dynamically.
+You can define static booleans or closures. If the flag is enabled in DB and has a closure, it will be resolved dynamically or can use the ui for defining the conditionals.
 
 ---
 
@@ -95,7 +100,7 @@ if (FeatureFlags::isEnabled('new_dashboard')) {
 $user = User::find(123);
 $environment = 'staging';
 
-if (FeatureFlags::isEnabled('beta_feature', $user, $environment)) {
+if (FeatureFlags::isEnabled(key: 'beta_feature',context: $user, environment: $environment)) {
     // Enable beta feature for this user in staging environment
 }
 ```
@@ -105,7 +110,7 @@ if (FeatureFlags::isEnabled('beta_feature', $user, $environment)) {
 ### ⚙️ Check a flag with a custom callback
 
 ```php
-FeatureFlags::isEnabled('complex_feature', null, null, function ($user) {
+FeatureFlags::isEnabled(key:'complex_feature', closure: function ($user) {
     return $user->isAdmin() && $user->created_at->diffInDays(now()) > 30;
 });
 ```

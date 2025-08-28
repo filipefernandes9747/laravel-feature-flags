@@ -113,7 +113,7 @@ class FeatureFlagController
 
     public function showConditionals(string $flag, Request $request)
     {
-        $userOptions = config('feature-flags.user_list', []);
+        $userOptions = config('feature-flags.ui.options', []);
 
         $flag = FeatureFlag::where('key', $flag)->firstOrFail();
         $routeEndpoint = config('feature-flags.ui.route_prefix', 'admin/flags');

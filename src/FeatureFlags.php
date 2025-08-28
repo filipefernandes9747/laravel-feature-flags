@@ -359,7 +359,7 @@ class FeatureFlags
 
     private function evaluateInCondition($context, string $option): bool
     {
-        $options = config('feature-flags.user_list', []);
+        $options = config('feature-flags.ui.options', []);
 
         if (empty($options) || empty($options[$option])) {
             return false;

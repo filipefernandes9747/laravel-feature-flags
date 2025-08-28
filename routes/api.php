@@ -4,13 +4,14 @@ use FilipeFernandes\FeatureFlags\FeatureFlags;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/feature-flags', function (Request $request) {
-    $env = $request->query('env'); // nullable string
+$externalRoute = config('feature-flags.external_route');
 
-    /** @var FeatureFlags $featureFlags */
-    $featureFlags = app(FeatureFlags::class);
+if ($externalRoute['enabled'] ?? false) {
+    $route = $externalRoute['endpoint'] ?? 'feature-flags';
 
-    $flags = $featureFlags->all($env);
-
-    return response()->json($flags);
-});
+    Route::get(
+        $route,
+        fn(Request $request, FeatureFlags $featureFlags) =>
+        response()->json($featureFlags->all($request->query('env')))
+    );
+}

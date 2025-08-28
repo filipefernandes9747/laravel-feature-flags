@@ -9,7 +9,6 @@ return [
     | All the defined feature flags go here.
     |
     */
-
     'flags' => [],
 
     /*
@@ -17,11 +16,11 @@ return [
     | UI Options
     |--------------------------------------------------------------------------
     */
-
     'ui' => [
         'enabled' => true,
         'middleware' => [],
         'route_prefix' => 'admin/flags',
+        'options' => [],
     ],
 
     /*
@@ -29,19 +28,20 @@ return [
     | Environments Options
     |--------------------------------------------------------------------------
     */
-
     'environments' => [
         'dev',
         'prod',
     ],
 
-
     /*
     |--------------------------------------------------------------------------
-    | User In Options
+    | External Route
     |--------------------------------------------------------------------------
     */
-    'user_list' => [],
+    'external_route' => [
+        'enabled' => true,
+        'endpoint' => 'feature-flags'
+    ],
 
 
 
@@ -50,7 +50,6 @@ return [
     | Caching Options
     |--------------------------------------------------------------------------
     */
-
     'cache' => [
         'enabled' => true,
         'ttl' => 300, // seconds
