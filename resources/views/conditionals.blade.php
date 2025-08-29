@@ -32,7 +32,7 @@
                     <span class="condition-label">IF</span>
                 </div>
                 <div id="and_contition_list">
-                    @if (empty($flag->conditions))
+                    @if (empty($flag->conditions?->and))
                         <div class="condition-row position-relative">
                             @include('feature-flags::partials.conditional-form', [
                                 'condition' => null,
@@ -40,7 +40,7 @@
                             ])
                         </div>
                     @else
-                        @foreach ($flag->conditions as $condition)
+                        @foreach ($flag->conditions->and as $condition)
                             <div class="condition-row position-relative">
                                 @include('feature-flags::partials.conditional-form', [
                                     'condition' => $condition,
@@ -61,7 +61,7 @@
                     ])
                 </div>
             </template>
-            <button class="add-condition-btn">
+            <button id="add_condition_and" class="add-condition-btn">
                 + Add Targeting Rule
             </button>
         </div>
@@ -97,7 +97,7 @@
             });
 
             // Add new condition
-            $('.add-condition-btn').click(function() {
+            $('#add_condition_and').click(function() {
                 const $template = $($('#condition-template').html());
                 $('#and_contition_list').append($template);
             });
@@ -130,7 +130,9 @@
                 e.preventDefault();
 
                 const formData = {
-                    conditions: getConditions()
+                    conditions: {
+                        and: getConditions('and')
+                    }
                 };
 
                 const route = '{{ $route }}';
@@ -175,10 +177,10 @@
             });
 
 
-            function getConditions() {
+            function getConditions(type) {
                 var conditions = [];
 
-                $('#and_contition_list .condition-row').each(function() {
+                $(`#${type}_contition_list .condition-row`).each(function() {
                     var $row = $(this);
                     const condition = {
                         context: $row.find('select[name="context"]').val(),

@@ -298,6 +298,11 @@ class FeatureFlags
             }
         }
 
+        // Check for conditions
+        if (!empty($flag->conditions)) {
+            return (bool) $this->evaluateConditions($flag->conditions, $user);
+        }
+
         // Check for config closure
         $config = $this->getConfigFlags()[$flag->key] ?? null;
         if (is_array($config) && is_callable($config['closure'] ?? null)) {
