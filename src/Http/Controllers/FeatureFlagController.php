@@ -130,10 +130,18 @@ class FeatureFlagController
     {
         $validator = Validator::make($request->all(), [
             'conditions' => ['required', 'array'],
-            'conditions.*.context' => ['required', 'string', Rule::in(ContextType::values())],
-            'conditions.*.operation' => ['required', 'string', Rule::in(OperationType::values())],
-            'conditions.*.key' => ['sometimes', 'string'],
-            'conditions.*.value' => ['sometimes', 'string'],
+            'conditions.and' => ['sometimes', 'array'],
+            'conditions.and.*' => ['array', 'bail'],
+            'conditions.and.*.context' => ['required', 'string', Rule::in(ContextType::values())],
+            'conditions.and.*.operation' => ['required', 'string', Rule::in(OperationType::values())],
+            'conditions.and.*.key' => ['sometimes', 'string'],
+            'conditions.and.*.value' => ['sometimes', 'string'],
+            'conditions.or' => ['sometimes', 'array'],
+            'conditions.or.*' => ['array', 'bail'],
+            'conditions.or.*.context' => ['required', 'string', Rule::in(ContextType::values())],
+            'conditions.or.*.operation' => ['required', 'string', Rule::in(OperationType::values())],
+            'conditions.or.*.key' => ['sometimes', 'string'],
+            'conditions.or.*.value' => ['sometimes', 'string'],
         ]);
 
         if ($validator->fails()) {

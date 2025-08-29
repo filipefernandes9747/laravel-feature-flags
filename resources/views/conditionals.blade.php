@@ -32,7 +32,7 @@
                     <span class="condition-label">IF</span>
                 </div>
                 <div id="and_contition_list">
-                    @if (empty($flag->conditions?->and))
+                    @if (empty($flag->conditions['and']))
                         <div class="condition-row position-relative">
                             @include('feature-flags::partials.conditional-form', [
                                 'condition' => null,
@@ -40,7 +40,7 @@
                             ])
                         </div>
                     @else
-                        @foreach ($flag->conditions->and as $condition)
+                        @foreach ($flag->conditions['and'] as $condition)
                             <div class="condition-row position-relative">
                                 @include('feature-flags::partials.conditional-form', [
                                     'condition' => $condition,
@@ -74,14 +74,13 @@
         </div>
     </form>
 
-    <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div class="toast-container position-fixed end-0 top-0 p-3">
         <div id="myToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive"
             aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body">
-                    Hello, this is a toast notification!
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-dismiss="toast"
                     aria-label="Close"></button>
             </div>
         </div>
